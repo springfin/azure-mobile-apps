@@ -178,6 +178,30 @@ namespace Microsoft.Datasync.Client.Table
         }
 
         /// <summary>
+        /// Updates an item in the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to update in the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the updated data when complete.</returns>
+        public Task<JToken> UpdatePatchItemAsync(JObject instance, CancellationToken cancellationToken = default)
+        {
+            var id = ServiceSerializer.GetId(instance);
+            var headers = GetConditionalHeaders(instance) ?? new Dictionary<string, string>();
+
+            headers["Content-Type"] = "application/json-patch+json";
+
+            ServiceRequest request = new()
+            {
+                Method = ServiceRequest.PATCH,
+                UriPathAndQuery = $"{TableEndpoint}/{id}",
+                EnsureResponseContent = true,
+                Content = instance["patch"].ToString(Formatting.None),
+                RequestHeaders = headers
+            };
+            return SendRequestAsync(request, cancellationToken);
+        }
+
+        /// <summary>
         /// Undeletes an item in the remote table.
         /// </summary>
         /// <remarks>

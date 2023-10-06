@@ -284,6 +284,28 @@ namespace Microsoft.Datasync.Client.Offline
             var operation = new UpdateOperation(tableName, itemId);
             await EnqueueOperationAsync(operation, instance, cancellationToken).ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// Replaces an item into the remote table.
+        /// </summary>
+        /// <param name="tableName">The name of the offline table.</param>
+        /// <param name="instance">The instance to replace into the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the replaced data when complete.</returns>
+        public async Task UpdatePatchItemAsync(string tableName, JObject instance, CancellationToken cancellationToken = default)
+        {
+            await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+            string itemId = ServiceSerializer.GetId(instance);
+            instance = ServiceSerializer.RemoveSystemProperties(instance, out string version);
+            if (version != null)
+            {
+                instance[SystemProperties.JsonVersionProperty] = version;
+            }
+            var operation = new UpdatePatchOperation(tableName, itemId);
+            await EnqueueOperationAsync(operation, instance, cancellationToken).ConfigureAwait(false);
+        }
+
         #endregion
 
         #region Data synchronization methods

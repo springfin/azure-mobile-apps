@@ -197,6 +197,19 @@ namespace Microsoft.Datasync.Client.Table
             var value = Serializer.Serialize(instance) as JObject;
             return ReplaceItemAsync(value, cancellationToken);
         }
+
+        /// <summary>
+        /// Patches the current instance with the provided instance in the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to replace.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns when the operation is complete.</returns>
+        public Task UpdatePatchItemAsync(T instance, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(instance, nameof(instance));
+            var value = Serializer.Serialize(instance) as JObject;
+            return UpdatePatchItemAsync(value, cancellationToken);
+        }
         #endregion
 
         #region ILinqMethods<T>

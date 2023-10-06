@@ -113,6 +113,14 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns the replaced data when complete.</returns>
         Task ReplaceItemAsync(JObject instance, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Updates an item in the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to update in the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the updated data when complete.</returns>
+        Task UpdatePatchItemAsync(JObject instance, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
@@ -216,5 +224,13 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns when the operation is complete.</returns>
         Task ReplaceItemAsync(T instance, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Patches the current instance with the provided instance in the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to replace.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns when the operation is complete.</returns>
+        Task UpdatePatchItemAsync(T instance, CancellationToken cancellationToken = default);
     }
 }

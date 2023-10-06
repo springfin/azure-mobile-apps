@@ -90,6 +90,14 @@ namespace Microsoft.Datasync.Client
         Task<JToken> ReplaceItemAsync(JObject instance, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Updates an item in the remote table.
+        /// </summary>
+        /// <param name="instance">The instance to update in the table.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
+        /// <returns>A task that returns the updated data when complete.</returns>
+        Task<JToken> UpdatePatchItemAsync(JObject instance, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Undeletes an item in the remote table.
         /// </summary>
         /// <remarks>

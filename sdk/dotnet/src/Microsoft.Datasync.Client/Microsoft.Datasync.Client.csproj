@@ -1,7 +1,7 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.44">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>net6.0;netstandard2.0;</TargetFrameworks>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -50,5 +50,6 @@
 	<!-- Common package requirements -->
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="JsonDiffPatch" Version="2.0.61" />
 	</ItemGroup>
 </Project>
