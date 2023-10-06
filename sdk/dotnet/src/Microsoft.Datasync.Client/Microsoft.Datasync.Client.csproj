@@ -1,8 +1,7 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras/3.0.44">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst;net6.0-windows10.0.19041.0;net6.0;netstandard2.0;monoandroid12.0;xamarin.ios10</TargetFrameworks>
-		<TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);uap10.0</TargetFrameworks>
+		<TargetFrameworks>net6.0;netstandard2.0;</TargetFrameworks>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -106,5 +105,6 @@
 	<!-- Common package requirements -->
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="JsonDiffPatch" Version="2.0.61" />
 	</ItemGroup>
 </Project>

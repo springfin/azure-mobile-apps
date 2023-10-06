@@ -20,7 +20,8 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         Unknown,
         Delete,
         Insert,
-        Update
+        Update,
+        UpdatePatch
     }
 
     /// <summary>
@@ -198,6 +199,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
                 TableOperationKind.Delete => new DeleteOperation(tableName, itemId),
                 TableOperationKind.Insert => new InsertOperation(tableName, itemId),
                 TableOperationKind.Update => new UpdateOperation(tableName, itemId),
+                TableOperationKind.UpdatePatch => new UpdatePatchOperation(tableName, itemId),
                 _ => throw new InvalidOperationException("Invalid operation kind")
             };
 
