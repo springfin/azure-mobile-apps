@@ -188,7 +188,7 @@ namespace Microsoft.Datasync.Client.Table
             var id = ServiceSerializer.GetId(instance);
             var headers = GetConditionalHeaders(instance) ?? new Dictionary<string, string>();
 
-            headers["Content-Type"] = "application/json-patch+json";
+            headers["json-patch"] = "true";
 
             ServiceRequest request = new()
             {
