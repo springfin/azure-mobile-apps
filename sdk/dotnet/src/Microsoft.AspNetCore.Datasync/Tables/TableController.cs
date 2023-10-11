@@ -135,12 +135,12 @@ namespace Microsoft.AspNetCore.Datasync
                     Logger?.LogError("Error while {reason}: {Message}", reason, err.Message);
                     throw;
                 }
-            } 
+            }
             else
             {
                 throw ex;
             }
-            
+
         }
 
         /// <summary>
@@ -172,10 +172,11 @@ namespace Microsoft.AspNetCore.Datasync
         internal JsonPatchDocument<TEntity> GetPatchDocument(string id, string json)
         {
             ContentType contentType = new(Request.ContentType);
+            var isJsonPatch = Request.Headers.TryGetValue("json-patch", out _);
 
             try
             {
-                if (contentType.MediaType == "application/json-patch+json")
+                if (contentType.MediaType == "application/json-patch+json" || isJsonPatch)
                 {
                     Logger?.LogInformation("Patch({Id}): Received JSON PATCH", id);
                     return JsonConvert.DeserializeObject<JsonPatchDocument<TEntity>>(json);

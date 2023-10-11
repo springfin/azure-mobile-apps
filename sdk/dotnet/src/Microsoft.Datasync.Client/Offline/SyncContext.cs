@@ -408,7 +408,7 @@ namespace Microsoft.Datasync.Client.Offline
                     }
                     else
                     {
-                        upsertList.Add(itemId, item);
+                        upsertList[itemId] = item;
                     }
                     itemCount++;
                     updatedAt = ServiceSerializer.GetUpdatedAt(item)?.ToUniversalTime();
