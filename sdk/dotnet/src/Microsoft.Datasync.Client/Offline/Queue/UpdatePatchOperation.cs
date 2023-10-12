@@ -39,12 +39,10 @@ public class UpdatePatchOperation : TableOperation
             Cancel();
             newOperation.Update();
         }
-        // An update followed by another update is still an update.  Cancel the
-        // second update and update the first update.
         if (newOperation is UpdatePatchOperation)
         {
-            Cancel();
-            newOperation.Update();
+            // don't cancel UpdatePatch
+            // it'll be cancelled if the diff is empty
         }
     }
 
