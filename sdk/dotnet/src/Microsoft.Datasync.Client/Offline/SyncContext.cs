@@ -42,7 +42,7 @@ namespace Microsoft.Datasync.Client.Offline
     /// The synchronization context, used for coordinating requests between the online and
     /// offline stores.
     /// </summary>
-    internal class SyncContext : IPushContext, IDisposable
+    public class SyncContext : IPushContext, IDisposable
     {
         private readonly AsyncLock initializationLock = new();
         private readonly AsyncReaderWriterLock queueLock = new();
@@ -910,7 +910,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="tableName">The name of the table.</param>
         /// <param name="query">The query string.</param>
         /// <returns>A query ID.</returns>
-        internal static string GetQueryIdFromQuery(string tableName, string query)
+        public static string GetQueryIdFromQuery(string tableName, string query)
         {
             string hashKey = $"q|{tableName}|{query}";
             byte[] bytes = Encoding.UTF8.GetBytes(hashKey);
