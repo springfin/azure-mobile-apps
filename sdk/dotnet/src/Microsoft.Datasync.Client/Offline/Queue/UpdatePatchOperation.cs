@@ -79,6 +79,7 @@ public class UpdatePatchOperation : TableOperation
 
         Item = JObject.Parse(diffJson);
         Item["id"] = itemId;
+        Item = ServiceSerializer.RemoveSystemProperties(Item, out _);
 
         await store.UpsertAsync(TableName, new[]
         {

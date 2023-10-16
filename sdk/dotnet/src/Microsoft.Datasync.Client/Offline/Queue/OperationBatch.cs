@@ -17,7 +17,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
     /// <summary>
     /// A collection of operations being pushed to the remote service.
     /// </summary>
-    internal class OperationBatch
+    public class OperationBatch
     {
         /// <summary>
         /// Creates a new <see cref="OperationBatch"/> based on a context.
