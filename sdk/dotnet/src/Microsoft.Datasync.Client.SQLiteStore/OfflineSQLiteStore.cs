@@ -205,6 +205,18 @@ namespace Microsoft.Datasync.Client.SQLiteStore
             }
         }
 
+        public override async Task<IReadOnlyList<T>> GetItemsAsync<T>(string tableName, string sql, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsValidTableName(tableName, true, nameof(tableName));
+            await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+            using (operationLock.AcquireLock())
+            {
+                IList<JObject> results = ExecuteQueryInternal(tableName, sql);
+                return results.Select(r => r.ToObject<T>()).ToArray();
+            }
+        }
+
         /// <summary>
         /// Returns items from the table.
         /// </summary>

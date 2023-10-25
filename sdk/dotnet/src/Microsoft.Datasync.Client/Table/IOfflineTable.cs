@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
 
 namespace Microsoft.Datasync.Client
 {
@@ -232,5 +233,7 @@ namespace Microsoft.Datasync.Client
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that returns when the operation is complete.</returns>
         Task UpdatePatchItemAsync(T instance, CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<T>> GetItemsAsync(string sql, CancellationToken cancellationToken = default);
     }
 }
