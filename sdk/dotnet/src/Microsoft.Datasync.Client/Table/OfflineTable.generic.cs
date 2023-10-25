@@ -59,7 +59,10 @@ namespace Microsoft.Datasync.Client.Table
         /// </summary>
         /// <returns>A query against the table.</returns>
         public ITableQuery<T> CreateQuery()
-            => new TableQuery<T>(RemoteTable) { IsOfflineEnabled = true };
+            => new TableQuery<T>(RemoteTable)
+            {
+                IsOfflineEnabled = true
+            };
 
         /// <summary>
         /// Count the number of items that would be returned by the provided query, without returning
@@ -71,7 +74,7 @@ namespace Microsoft.Datasync.Client.Table
         public Task<long> CountItemsAsync(ITableQuery<T> query, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(query, nameof(query));
-            return CountItemsAsync(((TableQuery<T>)query).ToODataString(true), cancellationToken);
+            return CountItemsAsync(((TableQuery<T>) query).ToODataString(true), cancellationToken);
         }
 
         /// <summary>
@@ -144,7 +147,7 @@ namespace Microsoft.Datasync.Client.Table
         public Task PullItemsAsync<U>(ITableQuery<U> query, PullOptions options, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(query, nameof(query));
-            return PullItemsAsync(((TableQuery<T>)query).ToODataString(true), options, cancellationToken);
+            return PullItemsAsync(((TableQuery<T>) query).ToODataString(true), options, cancellationToken);
         }
 
         /// <summary>
@@ -158,7 +161,7 @@ namespace Microsoft.Datasync.Client.Table
         public Task PurgeItemsAsync<U>(ITableQuery<U> query, PurgeOptions options, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(query, nameof(query));
-            return PurgeItemsAsync(((TableQuery<T>)query).ToODataString(true), options, cancellationToken);
+            return PurgeItemsAsync(((TableQuery<T>) query).ToODataString(true), options, cancellationToken);
         }
 
         /// <summary>
@@ -209,6 +212,10 @@ namespace Microsoft.Datasync.Client.Table
             Arguments.IsNotNull(instance, nameof(instance));
             var value = Serializer.Serialize(instance) as JObject;
             return UpdatePatchItemAsync(value, cancellationToken);
+        }
+        public Task<IReadOnlyList<T>> GetItemsAsync(string sql, CancellationToken cancellationToken = default)
+        {
+            return ServiceClient.SyncContext.OfflineStore.GetItemsAsync<T>(TableName, sql, cancellationToken: cancellationToken);
         }
         #endregion
 
@@ -345,12 +352,10 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>A task that returns a page of items when complete.</returns>
         private async Task<Page<U>> GetNextPageAsync<U>(ITableQuery<U> query, string nextLink, CancellationToken cancellationToken = default)
         {
-            var page = await base.GetNextPageAsync(((TableQuery<U>)query).ToODataString(true), nextLink, cancellationToken).ConfigureAwait(false);
+            var page = await base.GetNextPageAsync(((TableQuery<U>) query).ToODataString(true), nextLink, cancellationToken).ConfigureAwait(false);
             return new Page<U>
             {
-                Count = page.Count,
-                Items = page.Items.Select(m => Serializer.Deserialize<U>(m)).ToArray(),
-                NextLink = page.NextLink
+                Count = page.Count, Items = page.Items.Select(m => Serializer.Deserialize<U>(m)).ToArray(), NextLink = page.NextLink
             };
         }
     }
