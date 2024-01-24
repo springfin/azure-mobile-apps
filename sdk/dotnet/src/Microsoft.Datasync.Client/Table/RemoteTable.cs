@@ -292,7 +292,7 @@ namespace Microsoft.Datasync.Client.Table
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("SendRequestAsync: " + request.UriPathAndQuery);
+                System.Diagnostics.Debug.WriteLine(request.Method + " SendRequestAsync: " + request.UriPathAndQuery);
                 var response = await ServiceClient.HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
                 return GetJTokenFromResponse(response);
             }
