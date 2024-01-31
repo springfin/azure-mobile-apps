@@ -61,10 +61,8 @@ public class UpdatePatchOperation : TableOperation
             throw new OfflineStoreException($"Item with ID '{itemId}' does not exist in the offline store.");
         }
 
-        originalItem = ServiceSerializer.RemoveSystemProperties(originalItem, out var version);
-
-        if (version != null)
-            originalItem[SystemProperties.JsonVersionProperty] = version;
+        originalItem = ServiceSerializer.RemoveSystemProperties(originalItem, out _);
+        item = ServiceSerializer.RemoveSystemProperties(item, out _);
 
         var differ = new JsonDiffer();
         var patch = differ.Diff(originalItem, item, false);
@@ -79,7 +77,6 @@ public class UpdatePatchOperation : TableOperation
 
         Item = JObject.Parse(diffJson);
         Item["id"] = itemId;
-        Item = ServiceSerializer.RemoveSystemProperties(Item, out _);
 
         await store.UpsertAsync(TableName, new[]
         {
