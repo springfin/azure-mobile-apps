@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JsonDiffPatch;
@@ -56,13 +57,22 @@ public class UpdatePatchOperation : TableOperation
     {
         var itemId = ServiceSerializer.GetId(item);
         var originalItem = await store.GetItemAsync(TableName, itemId, cancellationToken).ConfigureAwait(false);
+
         if (originalItem == null)
-        {
             throw new OfflineStoreException($"Item with ID '{itemId}' does not exist in the offline store.");
-        }
 
         originalItem = ServiceSerializer.RemoveSystemProperties(originalItem, out _);
         item = ServiceSerializer.RemoveSystemProperties(item, out _);
+
+        var serverIdColumn = TableName + "Id";
+
+        var serverIdPropertyOriginal = originalItem.Properties().FirstOrDefault(p => p.Name.Equals(serverIdColumn, StringComparison.OrdinalIgnoreCase));
+        if (serverIdPropertyOriginal != null)
+            originalItem.Remove(serverIdPropertyOriginal.Name);
+
+        var serverIdProperty = item.Properties().FirstOrDefault(p => p.Name.Equals(serverIdColumn, StringComparison.OrdinalIgnoreCase));
+        if (serverIdProperty != null)
+            item.Remove(serverIdProperty.Name);
 
         var differ = new JsonDiffer();
         var patch = differ.Diff(originalItem, item, false);
