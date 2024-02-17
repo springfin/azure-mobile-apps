@@ -163,7 +163,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         /// Serialize this operations error to JSON.
         /// </summary>
         /// <returns>The <see cref="JObject"/> for this item.</returns>
-        internal JObject Serialize() => new()
+        public JObject Serialize() => new()
         {
             { SystemProperties.JsonIdProperty, Id },
             { "status", Status.HasValue ? (int?)Status.Value : null },
