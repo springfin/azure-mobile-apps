@@ -24,6 +24,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
     /// </summary>
     public class OfflineSQLiteStore : AbstractOfflineStore, IDeltaTokenStoreProvider
     {
+        public ServiceSerializer Serializer { get; set; }
         /// <summary>
         /// The mapping from the table name to the table definition.  This is built using the
         /// <see cref="DefineTable(string, JObject)"/> method before store initialization.
@@ -47,6 +48,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// </remarks>
         /// <see href="https://sqlite.org/c3ref/open.html"/>
         /// <param name="connectionString">The connection string to use for persistent storage.</param>
+        /// <param name="serializer"></param>
         public OfflineSQLiteStore(string connectionString)
         {
             Arguments.IsNotNullOrWhitespace(connectionString, nameof(connectionString));
@@ -70,6 +72,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <see href="https://sqlite.org/c3ref/open.html"/>
         /// <param name="connectionString">The connection string to use for persistent storage.</param>
         /// <param name="logger">The logger to use for logging SQL requests.</param>
+        /// <param name="serializer"></param>
         public OfflineSQLiteStore(string connectionString, ILogger logger) : this(connectionString)
         {
             Logger = logger;
@@ -83,6 +86,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// opened, limits are not set, and the connection is not disposed of when the store is disposed.
         /// </remarks>
         /// <param name="connection">The connection.</param>
+        /// <param name="serializer"></param>
         public OfflineSQLiteStore(sqlite3 connection)
         {
             Arguments.IsNotNull(connection, nameof(connection));
@@ -212,8 +216,8 @@ namespace Microsoft.Datasync.Client.SQLiteStore
 
             using (operationLock.AcquireLock())
             {
-                IList<JObject> results = ExecuteQueryInternal(tableName, sql);
-                return results.Select(r => r.ToObject<T>()).ToArray();
+                var results = ExecuteQueryInternal(tableName, sql);
+                return results.Select(r => Serializer.Deserialize<T>(r)).ToArray();
             }
         }
 
@@ -351,7 +355,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <param name="parameters">A list of parameter values for referenced parameters in the SQL statement.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>The list of rows returned by the query.</returns>
-        public async Task<IList<JObject>> ExecuteQueryAsync(string tableName, string sqlStatement, IDictionary<string, object> parameters = null, CancellationToken cancellationToken = default)
+        public override async Task<IList<JObject>> ExecuteQueryAsync(string tableName, string sqlStatement, IDictionary<string, object> parameters = null, CancellationToken cancellationToken = default)
         {
             Arguments.IsValidTableName(tableName, nameof(tableName));
             Arguments.IsNotNullOrWhitespace(sqlStatement, nameof(sqlStatement));

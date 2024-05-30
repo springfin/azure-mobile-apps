@@ -97,5 +97,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <returns>A task that completes when the item has been updated or inserted into the table.</returns>
         Task UpsertAsync(string tableName, IEnumerable<JObject> items, bool ignoreMissingColumns, CancellationToken cancellationToken = default);
         Task<IReadOnlyList<T>> GetItemsAsync<T>(string tableName, string sql, CancellationToken cancellationToken = default);
+
+        Task<IList<JObject>> ExecuteQueryAsync(string tableName, string sqlStatement, IDictionary<string, object> parameters = null, CancellationToken cancellationToken = default);
     }
 }

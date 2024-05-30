@@ -221,6 +221,9 @@ namespace Microsoft.Datasync.Client.Offline
             }
         }
 
+        public abstract Task<IList<JObject>> ExecuteQueryAsync(string tableName, string sqlStatement, IDictionary<string, object> parameters = null,
+            CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Initialize the store.  This is over-ridden by the store implementation to provide a point
         /// where the tables can be created or updated.
