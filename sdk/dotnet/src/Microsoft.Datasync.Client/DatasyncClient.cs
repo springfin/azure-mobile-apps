@@ -34,9 +34,10 @@ namespace Microsoft.Datasync.Client
         /// Creates a new <see cref="DatasyncClient"/> that connects to the specified endpoint for information transfer.
         /// </summary>
         /// <param name="endpoint">The endpoint of the datasync service.</param>
+        /// <param name="errorLogger"></param>
         /// <exception cref="UriFormatException">if the endpoint is not a valid Uri.</exception>
-        public DatasyncClient(string endpoint)
-            : this(new Uri(endpoint, UriKind.Absolute), null, null)
+        public DatasyncClient(string endpoint, Action<string> errorLogger)
+            : this(new Uri(endpoint, UriKind.Absolute), null, null, errorLogger)
         {
         }
 
@@ -45,9 +46,10 @@ namespace Microsoft.Datasync.Client
         /// </summary>
         /// <param name="endpoint">The endpoint of the datasync service.</param>
         /// <param name="clientOptions">The client options used to modify any request/response that is sent.</param>
+        /// <param name="errorLogger"></param>
         /// <exception cref="UriFormatException">if the endpoint is not a valid Uri.</exception>
-        public DatasyncClient(string endpoint, DatasyncClientOptions clientOptions)
-            : this(new Uri(endpoint, UriKind.Absolute), null, clientOptions)
+        public DatasyncClient(string endpoint, DatasyncClientOptions clientOptions, Action<string> errorLogger)
+            : this(new Uri(endpoint, UriKind.Absolute), null, clientOptions, errorLogger)
         {
         }
 
@@ -56,56 +58,10 @@ namespace Microsoft.Datasync.Client
         /// </summary>
         /// <param name="endpoint">The endpoint of the datasync service.</param>
         /// <param name="authenticationProvider">The authentication provider to use for authenticating the request</param>
+        /// <param name="errorLogger"></param>
         /// <exception cref="UriFormatException">if the endpoint is malformed</exception>
-        public DatasyncClient(string endpoint, AuthenticationProvider authenticationProvider)
-            : this(new Uri(endpoint, UriKind.Absolute), authenticationProvider, null)
-        {
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="DatasyncClient"/> that connects to the specified endpoint for information transfer.
-        /// </summary>
-        /// <param name="endpoint">The endpoint of the datasync service.</param>
-        /// <param name="authenticationProvider">The authentication provider to use for authenticating the request</param>
-        /// <param name="clientOptions">The client options used to modify any request/response that is sent.</param>
-        /// <exception cref="UriFormatException">if the endpoint is malformed</exception>
-        public DatasyncClient(string endpoint, AuthenticationProvider authenticationProvider, DatasyncClientOptions clientOptions)
-            : this(new Uri(endpoint, UriKind.Absolute), authenticationProvider, clientOptions)
-        {
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="DatasyncClient"/> that connects to the specified endpoint for information transfer.
-        /// </summary>
-        /// <param name="endpoint">The endpoint of the datasync service.</param>
-        /// <exception cref="ArgumentNullException">if the endpoint is null</exception>
-        /// <exception cref="UriFormatException">if the endpoint is malformed</exception>
-        public DatasyncClient(Uri endpoint)
-            : this(endpoint, null, null)
-        {
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="DatasyncClient"/> that connects to the specified endpoint for information transfer.
-        /// </summary>
-        /// <param name="endpoint">The endpoint of the datasync service.</param>
-        /// <param name="clientOptions">The client options used to modify any request/response that is sent.</param>
-        /// <exception cref="ArgumentNullException">if the endpoint is null</exception>
-        /// <exception cref="UriFormatException">if the endpoint is malformed</exception>
-        public DatasyncClient(Uri endpoint, DatasyncClientOptions clientOptions)
-            : this(endpoint, null, clientOptions)
-        {
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="DatasyncClient"/> that connects to the specified endpoint for information transfer.
-        /// </summary>
-        /// <param name="endpoint">The endpoint of the datasync service.</param>
-        /// <param name="authenticationProvider">The authentication provider to use for authenticating the request</param>
-        /// <exception cref="ArgumentNullException">if the endpoint is null</exception>
-        /// <exception cref="UriFormatException">if the endpoint is malformed</exception>
-        public DatasyncClient(Uri endpoint, AuthenticationProvider authenticationProvider)
-            : this(endpoint, authenticationProvider, null)
+        public DatasyncClient(string endpoint, AuthenticationProvider authenticationProvider, Action<string> errorLogger)
+            : this(new Uri(endpoint, UriKind.Absolute), authenticationProvider, null, errorLogger)
         {
         }
 
@@ -115,9 +71,61 @@ namespace Microsoft.Datasync.Client
         /// <param name="endpoint">The endpoint of the datasync service.</param>
         /// <param name="authenticationProvider">The authentication provider to use for authenticating the request</param>
         /// <param name="clientOptions">The client options used to modify any request/response that is sent.</param>
+        /// <param name="errorLogger"></param>
+        /// <exception cref="UriFormatException">if the endpoint is malformed</exception>
+        public DatasyncClient(string endpoint, AuthenticationProvider authenticationProvider, DatasyncClientOptions clientOptions, Action<string> errorLogger)
+            : this(new Uri(endpoint, UriKind.Absolute), authenticationProvider, clientOptions, errorLogger)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="DatasyncClient"/> that connects to the specified endpoint for information transfer.
+        /// </summary>
+        /// <param name="endpoint">The endpoint of the datasync service.</param>
+        /// <param name="errorLogger"></param>
         /// <exception cref="ArgumentNullException">if the endpoint is null</exception>
         /// <exception cref="UriFormatException">if the endpoint is malformed</exception>
-        public DatasyncClient(Uri endpoint, AuthenticationProvider authenticationProvider, DatasyncClientOptions clientOptions)
+        public DatasyncClient(Uri endpoint, Action<string> errorLogger)
+            : this(endpoint, null, null, errorLogger)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="DatasyncClient"/> that connects to the specified endpoint for information transfer.
+        /// </summary>
+        /// <param name="endpoint">The endpoint of the datasync service.</param>
+        /// <param name="clientOptions">The client options used to modify any request/response that is sent.</param>
+        /// <param name="errorLogger"></param>
+        /// <exception cref="ArgumentNullException">if the endpoint is null</exception>
+        /// <exception cref="UriFormatException">if the endpoint is malformed</exception>
+        public DatasyncClient(Uri endpoint, DatasyncClientOptions clientOptions, Action<string> errorLogger)
+            : this(endpoint, null, clientOptions, errorLogger)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="DatasyncClient"/> that connects to the specified endpoint for information transfer.
+        /// </summary>
+        /// <param name="endpoint">The endpoint of the datasync service.</param>
+        /// <param name="authenticationProvider">The authentication provider to use for authenticating the request</param>
+        /// <param name="errorLogger"></param>
+        /// <exception cref="ArgumentNullException">if the endpoint is null</exception>
+        /// <exception cref="UriFormatException">if the endpoint is malformed</exception>
+        public DatasyncClient(Uri endpoint, AuthenticationProvider authenticationProvider, Action<string> errorLogger)
+            : this(endpoint, authenticationProvider, null, errorLogger)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="DatasyncClient"/> that connects to the specified endpoint for information transfer.
+        /// </summary>
+        /// <param name="endpoint">The endpoint of the datasync service.</param>
+        /// <param name="authenticationProvider">The authentication provider to use for authenticating the request</param>
+        /// <param name="clientOptions">The client options used to modify any request/response that is sent.</param>
+        /// <param name="errorLogger"></param>
+        /// <exception cref="ArgumentNullException">if the endpoint is null</exception>
+        /// <exception cref="UriFormatException">if the endpoint is malformed</exception>
+        public DatasyncClient(Uri endpoint, AuthenticationProvider authenticationProvider, DatasyncClientOptions clientOptions, Action<string> errorLogger)
         {
             Arguments.IsValidEndpoint(endpoint, nameof(endpoint));
 
@@ -130,7 +138,7 @@ namespace Microsoft.Datasync.Client
             }
             if (ClientOptions.OfflineStore != null)
             {
-                SyncContext = new SyncContext(this, ClientOptions.OfflineStore);
+                SyncContext = new SyncContext(this, ClientOptions.OfflineStore, errorLogger);
             }
         }
 

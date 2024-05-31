@@ -98,7 +98,8 @@ namespace Microsoft.Datasync.Client.Offline
         /// </summary>
         /// <param name="tableName">The name of the table.</param>
         /// <param name="tableDefinition">The table definition as a sample JSON object.</param>
-        public abstract void DefineTable(string tableName, JObject tableDefinition);
+        /// <param name="isLocal"></param>
+        public abstract void DefineTable(string tableName, JObject tableDefinition, bool isLocal = false);
 
         /// <summary>
         /// Defines a table for use with offline sync.
@@ -106,7 +107,8 @@ namespace Microsoft.Datasync.Client.Offline
         /// <typeparam name="T">The type of entity stored in the table.</typeparam>
         /// <param name="tableName">The name of the table.</param>
         /// <param name="settings">The serializer settings.</param>
-        public virtual void DefineTable<T>(string tableName, DatasyncSerializerSettings settings)
+        /// <param name="isLocal"></param>
+        public virtual void DefineTable<T>(string tableName, DatasyncSerializerSettings settings, bool isLocal = false)
         {
             if (settings.ContractResolver.ResolveContract(typeof(T)) is not JsonObjectContract contract)
             {
@@ -169,7 +171,7 @@ namespace Microsoft.Datasync.Client.Offline
                 }
             }
 
-            DefineTable(tableName, jsonDefinition);
+            DefineTable(tableName, jsonDefinition, isLocal);
         }
 
         /// <summary>
@@ -223,6 +225,7 @@ namespace Microsoft.Datasync.Client.Offline
 
         public abstract Task<IList<JObject>> ExecuteQueryAsync(string tableName, string sqlStatement, IDictionary<string, object> parameters = null,
             CancellationToken cancellationToken = default);
+        public abstract bool IsTableLocal(string tableName);
 
         /// <summary>
         /// Initialize the store.  This is over-ridden by the store implementation to provide a point

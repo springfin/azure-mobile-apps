@@ -19,6 +19,9 @@ namespace Microsoft.Datasync.Client
         public static void DefineTable<T>(this IOfflineStore store)
             => DefineTable<T>(store, new DatasyncSerializerSettings());
 
+        public static void DefineLocalTable<T>(this IOfflineStore store)
+            => DefineTable<T>(store, new DatasyncSerializerSettings(), true);
+
         /// <summary>
         /// Defines a table for use with offline sync.
         /// </summary>
@@ -27,14 +30,14 @@ namespace Microsoft.Datasync.Client
         /// <param name="tableName">The name of the table.</param>
         public static void DefineTable<T>(this IOfflineStore store, string tableName)
             => store.DefineTable<T>(tableName, new DatasyncSerializerSettings());
-
         /// <summary>
         /// Defines a table for use with offline sync.
         /// </summary>
         /// <typeparam name="T">The type of entity stored in the table.</typeparam>
         /// <param name="store">The offline store.</param>
         /// <param name="settings">The serializer settings.</param>
-        public static void DefineTable<T>(this IOfflineStore store, DatasyncSerializerSettings settings)
-            => store.DefineTable<T>(settings.ContractResolver.ResolveTableName(typeof(T)), settings);
+        /// <param name="isLocal"></param>
+        public static void DefineTable<T>(this IOfflineStore store, DatasyncSerializerSettings settings, bool isLocal = false)
+            => store.DefineTable<T>(settings.ContractResolver.ResolveTableName(typeof(T)), settings, isLocal);
     }
 }

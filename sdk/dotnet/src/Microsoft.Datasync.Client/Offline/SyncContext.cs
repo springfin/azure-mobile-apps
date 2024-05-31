@@ -13,6 +13,7 @@ using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -44,6 +45,7 @@ namespace Microsoft.Datasync.Client.Offline
     /// </summary>
     public class SyncContext : IPushContext, IDisposable
     {
+        private readonly Action<string> _errorLogger;
         private readonly AsyncLock initializationLock = new();
         private readonly AsyncReaderWriterLock queueLock = new();
         private readonly AsyncLockDictionary tableLock = new();
@@ -57,7 +59,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <summary>
         /// Coordinates all the requests for offline operations.
         /// </summary>
-        internal SyncContext(DatasyncClient client, IOfflineStore store)
+        internal SyncContext(DatasyncClient client, IOfflineStore store, Action<string> errorLogger)
         {
             Arguments.IsNotNull(client, nameof(client));
             Arguments.IsNotNull(store, nameof(store));
@@ -66,6 +68,7 @@ namespace Microsoft.Datasync.Client.Offline
             OfflineStore = store;
             PushContext = this;
             IdGenerator = client.ClientOptions.IdGenerator;
+            _errorLogger = errorLogger;
         }
 
         /// <summary>
@@ -399,8 +402,10 @@ namespace Microsoft.Datasync.Client.Offline
                     var pendingOperation = await OperationsQueue.GetOperationByItemIdAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
                     if (pendingOperation != null)
                     {
-                        SendPullFinishedEvent(tableName, itemCount, false);
-                        throw new InvalidOperationException("Received an item for which there is a pending operation.");
+                        //SendPullFinishedEvent(tableName, itemCount, false);
+                        //throw new InvalidOperationException("Received an item for which there is a pending operation.");
+
+                        _errorLogger($"Received an item for which there is a pending operation. Item ID: {itemId}");
                     }
                     SendItemWillBeStoredEvent(tableName, itemId, itemCount, expectedItems);
 
@@ -740,12 +745,19 @@ namespace Microsoft.Datasync.Client.Offline
             {
                 // See if there is an existing operation.  If there is, then validate that it can be collapsed.
                 TableOperation existingOperation = await OperationsQueue.GetOperationByItemIdAsync(operation.TableName, operation.ItemId, cancellationToken).ConfigureAwait(false);
-                existingOperation?.ValidateOperationCanCollapse(operation);
+                var isLocalOperation = this.OfflineStore.IsTableLocal(operation.TableName);
+
+                if (!isLocalOperation)
+                    existingOperation?.ValidateOperationCanCollapse(operation);
 
                 // Execute the operation on the local store.
                 try
                 {
                     await operation.ExecuteOperationOnOfflineStoreAsync(OfflineStore, instance, cancellationToken).ConfigureAwait(false);
+
+                    // Don't enqueue the operation if it doesn't need to be pushed.
+                    if (isLocalOperation)
+                        return;
                 }
                 catch (Exception ex) when (ex is not OfflineStoreException)
                 {
@@ -833,7 +845,8 @@ namespace Microsoft.Datasync.Client.Offline
             Exception error = null;
             try
             {
-                result = await operation.ExecuteOperationOnRemoteServiceAsync(ServiceClient, cancellationToken).ConfigureAwait(false);
+                if (!OfflineStore.IsTableLocal(operation.TableName))
+                    result = await operation.ExecuteOperationOnRemoteServiceAsync(ServiceClient, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

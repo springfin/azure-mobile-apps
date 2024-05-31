@@ -165,7 +165,7 @@ namespace Microsoft.Datasync.Client.Table
         /// <returns>A task that returns the replaced data when complete.</returns>
         public Task ReplaceItemAsync(JObject instance, CancellationToken cancellationToken = default)
             => _context.ReplaceItemAsync(TableName, instance, cancellationToken);
-        
+
         public Task UpdatePatchItemAsync(JObject instance, CancellationToken cancellationToken = default)
             => _context.UpdatePatchItemAsync(TableName, instance, cancellationToken);
         #endregion

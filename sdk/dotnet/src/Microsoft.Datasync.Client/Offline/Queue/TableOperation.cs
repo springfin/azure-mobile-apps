@@ -232,6 +232,7 @@ namespace Microsoft.Datasync.Client.Offline.Queue
         public async Task<JObject> ExecuteOperationOnRemoteServiceAsync(DatasyncClient client, CancellationToken cancellationToken = default)
         {
             Arguments.IsNotNull(client, nameof(client));
+
             if (IsCancelled)
             {
                 return null;

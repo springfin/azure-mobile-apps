@@ -28,9 +28,10 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// </summary>
         /// <param name="tableName">The name of the table.</param>
         /// <param name="definition">The table definition.</param>
-        public TableDefinition(string tableName, JObject definition) : base(StringComparer.OrdinalIgnoreCase)
+        public TableDefinition(string tableName, JObject definition, bool isLocal = false) : base(StringComparer.OrdinalIgnoreCase)
         {
             TableName = tableName;
+            IsLocal = isLocal;
 
             // Add the ID column if it isn't present.
             if (!definition.TryGetValue(SystemProperties.JsonIdProperty, out _))
@@ -50,6 +51,10 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// </summary>
         public bool IsInDatabase { get; set; }
 
+        /// <summary>
+        /// A flag to indicate whether the table should be synchronized with the server.
+        /// </summary>
+        public bool IsLocal { get; set; }
 
         public string TableName { get; }
 

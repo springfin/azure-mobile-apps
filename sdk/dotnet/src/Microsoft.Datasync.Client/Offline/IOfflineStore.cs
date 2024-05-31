@@ -22,7 +22,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// </summary>
         /// <param name="tableName">The name of the table.</param>
         /// <param name="tableDefinition">The table definition as a sample JSON object.</param>
-        void DefineTable(string tableName, JObject tableDefinition);
+        void DefineTable(string tableName, JObject tableDefinition, bool isLocal = false);
 
         /// <summary>
         /// Defines a table for use with offline sync.
@@ -30,7 +30,7 @@ namespace Microsoft.Datasync.Client.Offline
         /// <typeparam name="T">The type of entity stored in the table.</typeparam>
         /// <param name="tableName">The name of the table.</param>
         /// <param name="settings">The serializer settings.</param>
-        void DefineTable<T>(string tableName, DatasyncSerializerSettings settings);
+        void DefineTable<T>(string tableName, DatasyncSerializerSettings settings, bool isLocal = false);
 
         /// <summary>
         /// Deletes items from the table where the items are identified by a query.
@@ -99,5 +99,7 @@ namespace Microsoft.Datasync.Client.Offline
         Task<IReadOnlyList<T>> GetItemsAsync<T>(string tableName, string sql, CancellationToken cancellationToken = default);
 
         Task<IList<JObject>> ExecuteQueryAsync(string tableName, string sqlStatement, IDictionary<string, object> parameters = null, CancellationToken cancellationToken = default);
+
+        bool IsTableLocal(string tableName);
     }
 }

@@ -123,7 +123,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// </summary>
         /// <param name="tableName">The name of the local table.</param>
         /// <param name="tableDefinition">The definition of the table.</param>
-        public override void DefineTable(string tableName, JObject tableDefinition)
+        public override void DefineTable(string tableName, JObject tableDefinition, bool isLocal = false)
         {
             Arguments.IsValidTableName(tableName, true, nameof(tableName));
             Arguments.IsNotNull(tableDefinition, nameof(tableDefinition));
@@ -131,7 +131,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
             if (!tableMap.ContainsKey(tableName))
             {
                 Logger?.LogDebug("Created table definition for table {tableName}", tableName);
-                tableMap.Add(tableName, new TableDefinition(tableName, tableDefinition));
+                tableMap.Add(tableName, new TableDefinition(tableName, tableDefinition, isLocal));
             }
         }
 
@@ -266,6 +266,12 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         public Task<IDeltaTokenStore> GetDeltaTokenStoreAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<IDeltaTokenStore>(new SQLiteDeltaTokenStore(this));
 
+        public override bool IsTableLocal(string tableName)
+        {
+            if (tableMap.TryGetValue(tableName, out TableDefinition table))
+                return table.IsLocal;
+            return false;
+        }
         /// <summary>
         /// Initialize the store.  This is over-ridden by the store implementation to provide a point
         /// where the tables can be created or updated.
