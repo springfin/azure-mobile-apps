@@ -402,10 +402,9 @@ namespace Microsoft.Datasync.Client.Offline
                     var pendingOperation = await OperationsQueue.GetOperationByItemIdAsync(tableName, itemId, cancellationToken).ConfigureAwait(false);
                     if (pendingOperation != null)
                     {
-                        //SendPullFinishedEvent(tableName, itemCount, false);
-                        //throw new InvalidOperationException("Received an item for which there is a pending operation.");
-
-                        _errorLogger($"Received an item for which there is a pending operation. Item ID: {itemId}");
+                        // allow patch operations
+                        if (pendingOperation.Kind != TableOperationKind.UpdatePatch)
+                            _errorLogger($"Received an item for which there is a pending operation. Item ID: {itemId}");
                     }
                     SendItemWillBeStoredEvent(tableName, itemId, itemCount, expectedItems);
 
