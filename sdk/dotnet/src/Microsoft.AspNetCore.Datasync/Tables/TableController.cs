@@ -323,7 +323,21 @@ namespace Microsoft.AspNetCore.Datasync
             }
             Request.ParseConditionalRequest(entity, out byte[] version);
 
-            patchDocument.ApplyTo(entity);
+            patchDocument.ApplyTo(entity, patchError =>
+            {
+                if (patchError == null)
+                    return;
+
+                var operation = patchError.Operation;
+                if (operation == null)
+                {
+                    Logger.LogWarning("Error applying operation: {Error}", patchError.ErrorMessage);
+                    return;
+                }
+
+                Logger.LogWarning("Error applying operation {Operation} to path {Path} on entity {Id}: {Message}", operation.OperationType, operation.path, id, patchError.ErrorMessage);
+            });
+
             if (!TryValidateModel(entity))
             {
                 return ValidationProblem(ModelState);
