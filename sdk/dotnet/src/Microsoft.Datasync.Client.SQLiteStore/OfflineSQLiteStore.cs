@@ -532,6 +532,10 @@ namespace Microsoft.Datasync.Client.SQLiteStore
 
             LogSqlStatement(sqlStatement, parameters);
             var rows = new List<JObject>();
+
+            if (DbConnection.connection == null)
+                throw new OfflineStoreDisposedException();
+
             using var statement = DbConnection.PrepareStatement(sqlStatement);
             statement.BindParameters(parameters);
             foreach (var row in statement.ExecuteQuery())
@@ -596,5 +600,10 @@ namespace Microsoft.Datasync.Client.SQLiteStore
                 DbConnection.Dispose();
             }
         }
+    }
+
+    public class OfflineStoreDisposedException : Exception
+    {
+        public OfflineStoreDisposedException() : base("The store has been disposed and is no longer available.") { }
     }
 }

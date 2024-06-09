@@ -12,6 +12,7 @@ using Microsoft.Datasync.Client.Table;
 using Microsoft.Datasync.Client.Utils;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -51,10 +52,14 @@ namespace Microsoft.Datasync.Client.Offline
         private readonly AsyncLockDictionary tableLock = new();
         private readonly AsyncLockDictionary itemLock = new();
 
+        private readonly ConcurrentQueue<(TableOperation operation, JObject instance)> _stagedOperations = new();
+
         /// <summary>
         /// The Id generator to use for item.
         /// </summary>
         private readonly Func<string, string> IdGenerator;
+
+        public bool IsOperationStagingEnabled { get; set; } = true;
 
         /// <summary>
         /// Coordinates all the requests for offline operations.
@@ -732,19 +737,39 @@ namespace Microsoft.Datasync.Client.Offline
             await OperationsQueue.DeleteOperationsAsync(query, cancellationToken).ConfigureAwait(false);
         }
 
+        public async Task<int> ExecuteStagedOperationsAsync(CancellationToken cancellationToken = default)
+        {
+            var count = 0;
+            while (_stagedOperations.TryDequeue(out var stagedOperation))
+            {
+                await EnqueueOperationAsync(stagedOperation.operation, stagedOperation.instance, cancellationToken, true).ConfigureAwait(false);
+                count++;
+            }
+
+            return count;
+        }
+
         /// <summary>
         /// Enqueues an operation and updates the offline store.
         /// </summary>
         /// <param name="operation">The table operation to enqueue.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the operation is enqueued on the operations queue.</returns>
-        private async Task EnqueueOperationAsync(TableOperation operation, JObject instance, CancellationToken cancellationToken)
+        private async Task EnqueueOperationAsync(TableOperation operation, JObject instance, CancellationToken cancellationToken, bool isExecutingStagedOperation = false)
         {
+            var isLocalOperation = OfflineStore.IsTableLocal(operation.TableName);
+
+            // local table operations are never staged
+            if (!isLocalOperation && IsOperationStagingEnabled && !isExecutingStagedOperation)
+            {
+                _stagedOperations.Enqueue((operation, instance));
+                return;
+            }
+
             using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
             {
                 // See if there is an existing operation.  If there is, then validate that it can be collapsed.
                 TableOperation existingOperation = await OperationsQueue.GetOperationByItemIdAsync(operation.TableName, operation.ItemId, cancellationToken).ConfigureAwait(false);
-                var isLocalOperation = this.OfflineStore.IsTableLocal(operation.TableName);
 
                 if (!isLocalOperation)
                     existingOperation?.ValidateOperationCanCollapse(operation);
