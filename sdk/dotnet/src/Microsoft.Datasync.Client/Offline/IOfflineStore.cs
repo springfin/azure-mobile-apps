@@ -99,6 +99,7 @@ namespace Microsoft.Datasync.Client.Offline
         Task<IReadOnlyList<T>> GetItemsAsync<T>(string tableName, string sql, CancellationToken cancellationToken = default);
 
         Task<IList<JObject>> ExecuteQueryAsync(string tableName, string sqlStatement, IDictionary<string, object> parameters = null, CancellationToken cancellationToken = default);
+        Task ExecuteSqlAsync(string sqlStatement, IDictionary<string, object> parameters = null, CancellationToken cancellationToken = default);
 
         bool IsTableLocal(string tableName);
     }

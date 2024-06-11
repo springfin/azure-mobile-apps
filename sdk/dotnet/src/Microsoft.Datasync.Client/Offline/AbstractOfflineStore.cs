@@ -225,6 +225,7 @@ namespace Microsoft.Datasync.Client.Offline
 
         public abstract Task<IList<JObject>> ExecuteQueryAsync(string tableName, string sqlStatement, IDictionary<string, object> parameters = null,
             CancellationToken cancellationToken = default);
+        public abstract Task ExecuteSqlAsync(string sqlStatement, IDictionary<string, object> parameters = null, CancellationToken cancellationToken = default);
         public abstract bool IsTableLocal(string tableName);
 
         /// <summary>

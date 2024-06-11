@@ -266,6 +266,16 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         public Task<IDeltaTokenStore> GetDeltaTokenStoreAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<IDeltaTokenStore>(new SQLiteDeltaTokenStore(this));
 
+        public override async Task ExecuteSqlAsync(string sqlStatement, IDictionary<string, object> parameters = null, CancellationToken cancellationToken = default)
+        {
+            Arguments.IsNotNull(sqlStatement, nameof(sqlStatement));
+            await EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+            using (operationLock.AcquireLock())
+            {
+                ExecuteNonQueryInternal(sqlStatement, parameters);
+            }
+        }
         public override bool IsTableLocal(string tableName)
         {
             if (tableMap.TryGetValue(tableName, out TableDefinition table))
