@@ -5,12 +5,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using JsonDiffPatch;
 using Microsoft.Datasync.Client.Serialization;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Datasync.Client.Offline.Queue;
 
 public class UpdatePatchOperation : TableOperation
 {
+    private PatchDocument _patch;
+
     /// <summary>
     /// Creates a new <see cref="UpdateOperation"/> object.
     /// </summary>
@@ -52,8 +55,29 @@ public class UpdatePatchOperation : TableOperation
     /// </summary>
     /// <param name="store">The offline store.</param>
     /// <param name="item">The item to use for the store operation.</param>
+    /// <param name="cancellationToken"></param>
     /// <returns>A task that completes when the store operation is completed.</returns>
     public override async Task ExecuteOperationOnOfflineStoreAsync(IOfflineStore store, JObject item, CancellationToken cancellationToken = default)
+    {
+        if (_patch == null)
+            return;
+
+        item = await store.GetItemAsync(TableName, ItemId, cancellationToken).ConfigureAwait(false);
+
+        var patcher = new JsonPatcher();
+        var itemRoot = item.Root;
+
+        patcher.Patch(ref itemRoot, _patch);
+
+        item = JObject.FromObject(itemRoot);
+
+        await store.UpsertAsync(TableName, new[]
+        {
+            item
+        }, false, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<JObject> Initialize(IOfflineStore store, JObject item, ServiceSerializer serializer, CancellationToken cancellationToken)
     {
         var itemId = ServiceSerializer.GetId(item);
         var originalItem = await store.GetItemAsync(TableName, itemId, cancellationToken).ConfigureAwait(false);
@@ -63,6 +87,8 @@ public class UpdatePatchOperation : TableOperation
 
         originalItem = ServiceSerializer.RemoveSystemProperties(originalItem, out _);
         item = ServiceSerializer.RemoveSystemProperties(item, out _);
+
+        originalItem = ReplaceDatesWithSerializedStrings(originalItem, serializer);
 
         var serverIdColumn = TableName + "Id";
 
@@ -80,18 +106,28 @@ public class UpdatePatchOperation : TableOperation
         if (patch.Operations.Count == 0)
         {
             Cancel();
-            return;
+            return item;
         }
 
         var diffJson = $"{{\"patch\":{patch}}}";
 
+        _patch = patch;
+
         Item = JObject.Parse(diffJson);
         Item["id"] = itemId;
+        return item;
+    }
 
-        await store.UpsertAsync(TableName, new[]
+    JObject ReplaceDatesWithSerializedStrings(JObject instance, ServiceSerializer serializer)
+    {
+        foreach (var property in instance.Properties())
         {
-            item
-        }, false, cancellationToken).ConfigureAwait(false);
+            if (property.Value.Type == JTokenType.Date)
+            {
+                instance[property.Name] = serializer.Serialize(property.Value);
+            }
+        }
+        return instance;
     }
 
     /// <summary>

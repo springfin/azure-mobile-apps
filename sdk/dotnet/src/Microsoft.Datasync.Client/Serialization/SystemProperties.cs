@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Datasync.Client.Serialization
 {
@@ -30,6 +31,8 @@ namespace Microsoft.Datasync.Client.Serialization
         /// </summary>
         public const string JsonUpdatedAtProperty = "updatedAt";
 
+        public const string JsonInstallMobileIdProperty = "installMobileId"; // hardcoded value :(
+
         /// <summary>
         /// The list of system properties, not including ID.
         /// </summary>
@@ -37,7 +40,8 @@ namespace Microsoft.Datasync.Client.Serialization
         {
             JsonDeletedProperty,
             JsonVersionProperty,
-            JsonUpdatedAtProperty
+            JsonUpdatedAtProperty,
+            JsonInstallMobileIdProperty
         };
     }
 }

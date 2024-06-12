@@ -311,6 +311,8 @@ namespace Microsoft.Datasync.Client.Offline
                 instance[SystemProperties.JsonVersionProperty] = version;
             }
             var operation = new UpdatePatchOperation(tableName, itemId);
+
+            await operation.Initialize(OfflineStore, instance, this.ServiceClient.Serializer, cancellationToken);
             await EnqueueOperationAsync(operation, instance, cancellationToken).ConfigureAwait(false);
         }
 
