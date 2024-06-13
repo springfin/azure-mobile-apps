@@ -12,6 +12,7 @@
     <RepositoryUrl>https://github.com/Azure/azure-mobile-apps</RepositoryUrl>
     <RootNamespace>Microsoft.AspNetCore.Datasync</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
+    <EmbedAllSources>true</EmbedAllSources>
   </PropertyGroup>
 
   <Import Project="..\..\Shared.Build.props" />

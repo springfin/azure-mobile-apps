@@ -19,6 +19,8 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <LangVersion>10.0</LangVersion>
     <NeutralLanguage>en-US</NeutralLanguage>
+
+    <EmbedAllSources>true</EmbedAllSources>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
