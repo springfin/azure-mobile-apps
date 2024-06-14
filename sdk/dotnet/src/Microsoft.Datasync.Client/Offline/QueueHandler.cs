@@ -13,10 +13,9 @@ namespace Microsoft.Datasync.Client.Offline
     /// </summary>
     internal class QueueHandler
     {
-        /// <summary>
-        /// The jobs.
-        /// </summary>
-        private readonly ActionBlock<TableOperation> _jobs;
+        private ActionBlock<TableOperation> _jobs;
+        private readonly int _maxThreads;
+        private readonly Func<TableOperation,Task> _jobRunner;
 
         /// <summary>
         /// Creates a new <see cref="QueueHandler"/>.
@@ -25,12 +24,22 @@ namespace Microsoft.Datasync.Client.Offline
         /// <param name="jobRunner">The job runner method.</param>
         public QueueHandler(int maxThreads, Func<TableOperation, Task> jobRunner)
         {
+            _maxThreads = maxThreads;
+            _jobRunner = jobRunner;
+
             var options = new ExecutionDataflowBlockOptions()
             {
                 MaxDegreeOfParallelism = maxThreads
             };
 
             _jobs = new ActionBlock<TableOperation>(jobRunner, options);
+        }
+
+        public void Restart()
+        {
+            _jobs = new ActionBlock<TableOperation>(_jobRunner, new ExecutionDataflowBlockOptions {
+                MaxDegreeOfParallelism = _maxThreads
+            });
         }
 
         /// <summary>

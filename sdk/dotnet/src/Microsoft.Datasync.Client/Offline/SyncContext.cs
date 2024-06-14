@@ -52,8 +52,6 @@ namespace Microsoft.Datasync.Client.Offline
         private readonly AsyncLockDictionary tableLock = new();
         private readonly AsyncLockDictionary itemLock = new();
 
-        private readonly ConcurrentQueue<(TableOperation operation, JObject instance)> _stagedOperations = new();
-
         /// <summary>
         /// The Id generator to use for item.
         /// </summary>
@@ -594,13 +592,41 @@ namespace Microsoft.Datasync.Client.Offline
                 });
                 try
                 {
+                    List<TableOperation> operationsBatch = new();
+                    TableOperation lastOperation = null;
+
+                    // Function to process the current batch of operations
+                    async Task ProcessBatchAsync()
+                    {
+                        foreach (var op in operationsBatch)
+                        {
+                            queueHandler.Enqueue(op);
+                            await Task.Delay(25, cancellationToken);
+                        }
+                        await queueHandler.WhenComplete(); // Wait for all operations in the current batch to complete
+                        queueHandler.Restart();
+                        operationsBatch.Clear();
+                    }
+
+                    // Read and process operations
                     TableOperation operation = await OperationsQueue.PeekAsync(0, tableNames, cancellationToken).ConfigureAwait(false);
                     while (operation != null)
                     {
-                        queueHandler.Enqueue(operation);
+                        // If the operation is not the same as the last operation, then process the current batch
+                        if (lastOperation != null && (operation.Kind != lastOperation.Kind || operation.TableName != lastOperation.TableName))
+                        {
+                            // Process the current batch and start a new batch for the new operation type/table
+                            await ProcessBatchAsync();
+                        }
+
+                        operationsBatch.Add(operation);
+                        lastOperation = operation;
                         operation = await OperationsQueue.PeekAsync(operation.Sequence, tableNames, cancellationToken).ConfigureAwait(false);
                     }
-                    await queueHandler.WhenComplete();
+
+                    // Process any remaining operations in the last batch
+                    if (operationsBatch.Count > 0)
+                        await ProcessBatchAsync();
                 }
                 catch (Exception ex)
                 {
@@ -739,39 +765,19 @@ namespace Microsoft.Datasync.Client.Offline
             await OperationsQueue.DeleteOperationsAsync(query, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<int> ExecuteStagedOperationsAsync(CancellationToken cancellationToken = default)
-        {
-            var count = 0;
-            while (_stagedOperations.TryDequeue(out var stagedOperation))
-            {
-                await EnqueueOperationAsync(stagedOperation.operation, stagedOperation.instance, cancellationToken, true).ConfigureAwait(false);
-                count++;
-            }
-
-            return count;
-        }
-
         /// <summary>
         /// Enqueues an operation and updates the offline store.
         /// </summary>
         /// <param name="operation">The table operation to enqueue.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe.</param>
         /// <returns>A task that completes when the operation is enqueued on the operations queue.</returns>
-        private async Task EnqueueOperationAsync(TableOperation operation, JObject instance, CancellationToken cancellationToken, bool isExecutingStagedOperation = false)
+        private async Task EnqueueOperationAsync(TableOperation operation, JObject instance, CancellationToken cancellationToken)
         {
-            var isLocalOperation = OfflineStore.IsTableLocal(operation.TableName);
-
-            // local table operations are never staged
-            if (!isLocalOperation && IsOperationStagingEnabled && !isExecutingStagedOperation)
-            {
-                _stagedOperations.Enqueue((operation, instance));
-                return;
-            }
-
             using (await queueLock.WriterLockAsync(cancellationToken).ConfigureAwait(false))
             {
                 // See if there is an existing operation.  If there is, then validate that it can be collapsed.
                 TableOperation existingOperation = await OperationsQueue.GetOperationByItemIdAsync(operation.TableName, operation.ItemId, cancellationToken).ConfigureAwait(false);
+                var isLocalOperation = OfflineStore.IsTableLocal(operation.TableName);
 
                 if (!isLocalOperation)
                     existingOperation?.ValidateOperationCanCollapse(operation);

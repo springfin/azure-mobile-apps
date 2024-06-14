@@ -336,14 +336,6 @@ namespace Microsoft.Datasync.Client
             => ServiceHttpClient.HttpClient.SendAsync(request, cancellationToken);
         #endregion
 
-        public bool IsOperationStagingEnabled
-        {
-            get => SyncContext.IsOperationStagingEnabled;
-            set => SyncContext.IsOperationStagingEnabled = value;
-        }
-
-        public Task<int> ExecuteStagedOperations(CancellationToken token) => SyncContext.ExecuteStagedOperationsAsync(token);
-
         /// <summary>
         /// Sends a synchronization event to the consumers.
         /// </summary>
