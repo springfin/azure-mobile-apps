@@ -352,10 +352,10 @@ namespace Microsoft.Datasync.Client.Offline
                 await PushContext.PushItemsAsync(relatedTables, cancellationToken).ConfigureAwait(false);
 
                 // If the table is still dirty, then throw an error.
-                if (await TableIsDirtyAsync(tableName, cancellationToken).ConfigureAwait(false))
-                {
-                    throw new DatasyncInvalidOperationException($"There are still pending operations for table '{tableName}' after a push");
-                }
+                // if (await TableIsDirtyAsync(tableName, cancellationToken).ConfigureAwait(false))
+                // {
+                //     throw new DatasyncInvalidOperationException($"There are still pending operations for table '{tableName}' after a push");
+                // }
             }
 
             var deltaToken = await DeltaTokenStore.GetDeltaTokenAsync(tableName, queryId, cancellationToken).ConfigureAwait(false);
