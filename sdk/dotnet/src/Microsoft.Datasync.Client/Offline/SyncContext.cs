@@ -50,7 +50,7 @@ namespace Microsoft.Datasync.Client.Offline
         private readonly AsyncLock initializationLock = new();
         private readonly AsyncReaderWriterLock queueLock = new();
         private readonly AsyncLockDictionary tableLock = new();
-        private readonly AsyncLockDictionary itemLock = new();
+        private readonly AsyncLockDictionary _itemLock = new();
 
         /// <summary>
         /// The Id generator to use for item.
@@ -211,7 +211,7 @@ namespace Microsoft.Datasync.Client.Offline
             await EnsureContextIsInitializedAsync(cancellationToken).ConfigureAwait(false);
             string itemId = ServiceSerializer.GetId(instance);
 
-            using IDisposable itemLock = await this.itemLock.AcquireAsync(itemId, cancellationToken).ConfigureAwait(false);
+            using IDisposable itemLock = await this._itemLock.AcquireAsync(itemId, cancellationToken).ConfigureAwait(false);
             JObject originalInstance = await GetItemAsync(tableName, itemId, cancellationToken).ConfigureAwait(false)
                 ?? throw new InvalidOperationException($"The item with ID '{itemId}' is not in the offline store.");
             DeleteOperation operation = new(tableName, itemId) { Item = originalInstance };
@@ -263,7 +263,7 @@ namespace Microsoft.Datasync.Client.Offline
                 instance[SystemProperties.JsonIdProperty] = itemId;
             }
 
-            using IDisposable itemLock = await this.itemLock.AcquireAsync(itemId, cancellationToken).ConfigureAwait(false);
+            using IDisposable itemLock = await this._itemLock.AcquireAsync(itemId, cancellationToken).ConfigureAwait(false);
             var operation = new InsertOperation(tableName, itemId);
             await EnqueueOperationAsync(operation, instance, cancellationToken).ConfigureAwait(false);
         }
@@ -286,7 +286,7 @@ namespace Microsoft.Datasync.Client.Offline
                 instance[SystemProperties.JsonVersionProperty] = version;
             }
 
-            using IDisposable itemLock = await this.itemLock.AcquireAsync(itemId, cancellationToken).ConfigureAwait(false);
+            using IDisposable itemLock = await this._itemLock.AcquireAsync(itemId, cancellationToken).ConfigureAwait(false);
             var operation = new UpdateOperation(tableName, itemId);
             await EnqueueOperationAsync(operation, instance, cancellationToken).ConfigureAwait(false);
         }
@@ -556,7 +556,7 @@ namespace Microsoft.Datasync.Client.Offline
                     TableOperation operation = await OperationsQueue.PeekAsync(0, tableNames, cancellationToken).ConfigureAwait(false);
                     while (operation != null)
                     {
-                        using (IDisposable itemLock = await this.itemLock.AcquireAsync(operation.ItemId, cancellationToken).ConfigureAwait(false))
+                        using (IDisposable _ = await _itemLock.AcquireAsync(operation.ItemId, cancellationToken).ConfigureAwait(false))
                         {
                             // Get the operation again in case it changed while waiting for the lock.
                             operation = await OperationsQueue.GetOperationByItemIdAsync(operation.TableName, operation.ItemId, cancellationToken).ConfigureAwait(false);
@@ -581,7 +581,7 @@ namespace Microsoft.Datasync.Client.Offline
             {
                 QueueHandler queueHandler = new(maxThreads, async (operation) =>
                 {
-                    using IDisposable itemLock = await this.itemLock.AcquireAsync(operation.ItemId, cancellationToken).ConfigureAwait(false);
+                    using IDisposable _ = await _itemLock.AcquireAsync(operation.ItemId, cancellationToken).ConfigureAwait(false);
 
                     // Get the operation again in case it changed while waiting for the lock.
                     operation = await OperationsQueue.GetOperationByItemIdAsync(operation.TableName, operation.ItemId, cancellationToken).ConfigureAwait(false);
