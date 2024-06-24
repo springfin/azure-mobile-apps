@@ -500,6 +500,10 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         protected void ExecuteNonQueryInternal(string sqlStatement, IDictionary<string, object> parameters = null)
         {
             Arguments.IsNotNullOrWhitespace(sqlStatement, nameof(sqlStatement));
+
+            if (DbConnection.connection == null)
+                throw new OfflineStoreDisposedException();
+
             parameters ??= new Dictionary<string, object>();
 
             LogSqlStatement(sqlStatement, parameters);
@@ -607,13 +611,16 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         {
             if (disposing)
             {
-                DbConnection.Dispose();
+                using (operationLock.AcquireLock())
+                {
+                    DbConnection.Dispose();
+                }
             }
         }
     }
 
     public class OfflineStoreDisposedException : Exception
     {
-        public OfflineStoreDisposedException() : base("The store has been disposed and is no longer available.") { }
+        public OfflineStoreDisposedException() : base("The store has been disposed and is no longer available") { }
     }
 }
