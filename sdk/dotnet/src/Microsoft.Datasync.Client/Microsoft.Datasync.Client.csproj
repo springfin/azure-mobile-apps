@@ -43,7 +43,6 @@
 	<!-- .NET Standard 2.0 Platform Support -->
 	<ItemGroup Condition="$(TargetFramework.StartsWith('netstandard2.0'))">
 		<Compile Include="Platforms\netstandard\*.cs" />
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
 		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
 		<PackageReference Include="System.Memory" Version="4.5.5" PrivateAssets="compile;contentfiles;build;analyzers" />
 	</ItemGroup>
@@ -52,5 +51,8 @@
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="JsonDiffPatch" Version="2.0.61" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+	  <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.3" />
 	</ItemGroup>
 </Project>
