@@ -169,9 +169,9 @@ namespace Microsoft.Datasync.Client
         public string InstallationId { get => ServiceHttpClient.InstallationId; }
 
         /// <summary>
-        /// The number of pending operations, or null if the offline store has not been defined.
+        /// The number of pending operations, or null if the offline store has not been initialized.
         /// </summary>
-        public long? PendingOperations { get => SyncContext?.PendingOperations; }
+        public long? PendingOperations { get => SyncContext is { IsInitialized: true } context ? context.PendingOperations : null; }
 
         /// <summary>
         /// The serializer to use for serializing and deserializing content.
