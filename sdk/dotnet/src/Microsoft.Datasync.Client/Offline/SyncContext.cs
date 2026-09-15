@@ -598,12 +598,18 @@ namespace Microsoft.Datasync.Client.Offline
                     // Function to process the current batch of operations
                     async Task ProcessBatchAsync()
                     {
-                        foreach (var op in operationsBatch)
+                        try
                         {
-                            queueHandler.Enqueue(op);
-                            await Task.Delay(25, cancellationToken);
+                            foreach (var op in operationsBatch)
+                            {
+                                queueHandler.Enqueue(op);
+                                await Task.Delay(25, cancellationToken);
+                            }
                         }
-                        await queueHandler.WhenComplete(); // Wait for all operations in the current batch to complete
+                        finally
+                        {
+                            await queueHandler.WhenComplete().ConfigureAwait(false);
+                        }
                         queueHandler.Restart();
                         operationsBatch.Clear();
                     }
@@ -632,6 +638,12 @@ namespace Microsoft.Datasync.Client.Offline
                 {
                     batch.OtherErrors.Add(ex);
                 }
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                SendPushFinishedEvent(false);
+                cancellationToken.ThrowIfCancellationRequested();
             }
 
             // If there were errors, then create a push failed exception.
