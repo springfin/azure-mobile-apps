@@ -296,6 +296,7 @@ namespace Microsoft.Datasync.Client.SQLiteStore
             // Now that all the tables are defined, actually create the tables!
             tableMap.Values
                 .Where(table => !table.IsInDatabase)
+                .OrderByDescending(table => table.TableName == SystemTables.Configuration)
                 .ToList()
                 .ForEach(table => CreateTableFromDefinition(table));
 
@@ -466,14 +467,22 @@ namespace Microsoft.Datasync.Client.SQLiteStore
         /// <param name="tableDefinition"></param>
         protected void CreateTableFromDefinition(TableDefinition tableDefinition)
         {
+            string tableInfoSql = SqlStatements.GetTableInformation(tableDefinition.TableName);
+            var existingColumns = ExecuteQueryInternal(tableInfoSql).ToDictionary(c => c.Value<string>("name"), StringComparer.OrdinalIgnoreCase);
+
+            if (existingColumns.Count == 0 && !tableDefinition.IsLocal && !tableDefinition.TableName.StartsWith(SystemTables.Prefix, StringComparison.Ordinal))
+            {
+                ExecuteNonQueryInternal($"DELETE FROM [{SystemTables.Configuration}] WHERE substr([id], 1, length(@prefix)) = @prefix", new Dictionary<string, object> { ["@prefix"] = $"dt.{tableDefinition.TableName}." });
+            }
+
             var idColumn = tableDefinition.Columns.First(c => c.IsIdColumn);
             var columnDefinitions = tableDefinition.Columns.Where(c => !c.IsIdColumn);
 
             string createTableSql = SqlStatements.CreateTableFromColumns(tableDefinition.TableName, idColumn, columnDefinitions);
             ExecuteNonQueryInternal(createTableSql);
 
-            string tableInfoSql = SqlStatements.GetTableInformation(tableDefinition.TableName);
-            var existingColumns = ExecuteQueryInternal(tableInfoSql).ToDictionary(c => c.Value<string>("name"), StringComparer.OrdinalIgnoreCase);
+            if (existingColumns.Count == 0)
+                return;
 
             // Process changes to the table definition - column(s) added
             foreach (var column in tableDefinition.Columns.Where(c => !existingColumns.ContainsKey(c.Name)))
