@@ -100,8 +100,12 @@ public class UpdatePatchOperation : TableOperation
         if (serverIdProperty != null)
             item.Remove(serverIdProperty.Name);
 
+        var updatedItem = (JObject)originalItem.DeepClone();
+        foreach (var property in item.Properties())
+            updatedItem[property.Name] = property.Value.DeepClone();
+
         var differ = new JsonDiffer();
-        var patch = differ.Diff(originalItem, item, false);
+        var patch = differ.Diff(originalItem, updatedItem, false);
 
         if (patch.Operations.Count == 0)
         {
