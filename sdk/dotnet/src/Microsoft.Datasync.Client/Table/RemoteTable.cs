@@ -107,7 +107,10 @@ namespace Microsoft.Datasync.Client.Table
         /// <param name="query">An OData query to execute.</param>
         /// <returns>A task that returns the results when the query finishes.</returns>
         public IAsyncEnumerable<JToken> GetAsyncItems(string query)
-            => new FuncAsyncPageable<JToken>(nextLink => GetNextPageAsync(query, nextLink));
+            => GetAsyncItems(query, default);
+
+        internal IAsyncEnumerable<JToken> GetAsyncItems(string query, CancellationToken cancellationToken)
+            => new FuncAsyncPageable<JToken>(nextLink => GetNextPageAsync(query, nextLink, cancellationToken));
 
         /// <summary>
         /// Retrieve an item from the remote table.
