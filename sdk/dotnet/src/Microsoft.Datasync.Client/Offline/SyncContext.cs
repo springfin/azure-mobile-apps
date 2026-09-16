@@ -376,7 +376,7 @@ namespace Microsoft.Datasync.Client.Offline
             long itemCount = 0;
             long expectedItems = -1;
             DateTimeOffset? updatedAt = null;
-            var enumerable = table.GetAsyncItems(odataString);
+            var enumerable = table.GetAsyncItems(odataString, cancellationToken);
             var deletedIds = new List<string>();
             var upsertList = new Dictionary<string, JObject>();
             try
